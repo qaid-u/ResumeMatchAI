@@ -23,7 +23,7 @@ An AI-powered tool for matching resumes to job descriptions using the Gemini API
 ### Steps  
 1. Clone the repository:  
    ```bash  
-   git clone https://github.com/your-username/ResumeMatchAI.git  
+   git clone https://github.com/qaid-u/ResumeMatchAI.git  
    cd ResumeMatchAI  
 2. Create and activate a virtual environment:
    ```bash
