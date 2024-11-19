@@ -3,8 +3,8 @@ An AI-powered tool for matching resumes to job descriptions using NLP and the Ge
 
 # Features
 
-**Upload and preview resumes in .docx or .pdf formats.
-**Automatically convert .docx to .pdf for consistent previews.
-**Analyze candidate resumes and calculate match scores.
-**Store candidate data in MongoDB.
-**Clean and user-friendly interface for recruiters.
+- Upload and preview resumes in .docx or .pdf formats.
+- Automatically convert .docx to .pdf for consistent previews.
+- Analyze candidate resumes and calculate match scores.
+- Store candidate data in MongoDB.
+- Clean and user-friendly interface for recruiters.
