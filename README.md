@@ -26,21 +26,22 @@ An AI-powered tool for matching resumes to job descriptions using the Gemini API
    git clone https://github.com/your-username/ResumeMatchAI.git  
    cd ResumeMatchAI  
 2. Create and activate a virtual environment:
-  ```bash
-  python -m venv venv  
-  source venv/bin/activate  # On Windows: venv\Scripts\activate
-  ```
+   ```bash
+   python -m venv venv  
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
 3. Install dependencies
-  ```bash
-  pip install -r requirements.txt  
-  ```
+   ```bash
+   pip install -r requirements.txt  
+   ```
 4. Setup your .env file with the following:
+   ```bash
    MONGO_URI=mongodb+srv://your_username:your_password@cluster_url  
    GEMINI_API_KEY=your_gemini_api_key
-5. Start the Streamlit app:
-  ```bash
-  streamlit run app.py  
-  ```
+6. Start the Streamlit app:
+   ```bash
+   streamlit run app.py  
+   ```
 
 ### Usage
 1. Upload candidate resumes and job descriptions to the database.
