@@ -1,9 +1,6 @@
-import base64
 import os
 import re
-import tempfile
 from gridfs import GridFS
-import pypandoc
 import pytesseract
 from pdf2image import convert_from_path
 import streamlit as st

@@ -1,17 +1,28 @@
 import streamlit as st
 import pandas as pd
 import database
-import gemini  # Assuming `gemini` is a module for Gemini API functions
+import gemini  
 from bson import ObjectId  # Import to handle MongoDB Object IDs
 
-def get_jobs():
-    """Fetch job titles and IDs from the database for the dropdown."""
-    try:
-        jobs = database.db.jobs.find({}, {"_id": 1, "position_name": 1})
-        return [{"id": str(job["_id"]), "position_name": job["position_name"]} for job in jobs]
-    except Exception as e:
-        st.error(f"Error fetching job titles: {e}")
-        return []
+def display_matching_table():
+    display_candidate_table()
+    jobs = get_jobs()
+    
+    if not jobs:
+        st.warning("No job titles available to select.")
+        return
+
+    job_options = {job["position_name"]: job["id"] for job in jobs}
+    selected_job_title = st.selectbox("Select Job", job_options.keys())
+    selected_job_id = job_options.get(selected_job_title)
+    
+    if st.button("Match Candidates") and selected_job_id:
+        with st.spinner("Processing candidate matching..."):
+            try:
+                matching_candidates_and_resume(selected_job_id)
+                display_sorted_candidates()
+            except Exception as e:
+                st.error(f"Error matching candidates: {e}")
 
 def display_candidate_table():
     st.markdown("### Matching Candidate Resumes")
@@ -37,79 +48,71 @@ def display_candidate_table():
     except Exception as e:
         st.error(f"Error displaying candidates: {e}")
 
-def display_matching_table():
-    display_candidate_table()
-    jobs = get_jobs()
-    
-    if not jobs:
-        st.warning("No job titles available to select.")
-        return
-
-    job_options = {job["position_name"]: job["id"] for job in jobs}
-    selected_job_title = st.selectbox("Select Job", job_options.keys())
-    selected_job_id = job_options.get(selected_job_title)
-    
-    if st.button("Match Candidates") and selected_job_id:
-        with st.spinner("Processing candidate matching..."):
-            try:
-                matching_candidates_and_resume(selected_job_id)
-                display_sorted_candidates()
-            except Exception as e:
-                st.error(f"Error matching candidates: {e}")
+def get_jobs():
+    """Fetch job titles and IDs from the database for the dropdown."""
+    try:
+        jobs = database.db.jobs.find({}, {"_id": 1, "position_name": 1})
+        return [{"id": str(job["_id"]), "position_name": job["position_name"]} for job in jobs]
+    except Exception as e:
+        st.error(f"Error fetching job titles: {e}")
+        return []
 
 def matching_candidates_and_resume(job_id):
     try:
-        # Retrieve all candidate details from the database
-        candidates = list(database.db.candidates.find({}, {"_id": 1, "name": 1, "email_address": 1, "phone_number": 1, 
-                                                           "uploaded_date": 1, "education": 1, "experience": 1, 
-                                                           "technical_skills": 1, "soft_skills": 1, "responsibilities": 1, 
-                                                           "certifications": 1}))
+        candidates = list(database.db.candidates.find({}, {
+            "_id": 1, "name": 1, "email_address": 1, "phone_number": 1, 
+            "uploaded_date": 1, "education": 1, "experience": 1, 
+            "technical_skills": 1, "soft_skills": 1, "responsibilities": 1, 
+            "certifications": 1
+        }))
         
-        # Fetch job description based on job ID
         job_description = database.db.jobs.find_one({"_id": ObjectId(job_id)})
-        
         if job_description is None:
             st.warning(f"No job description found for job ID '{job_id}'")
             return
 
-        # Extract job details with checks for each field
         job_data = {
             "position_name": job_description.get("position_name", ""),
             "description": job_description.get("description", ""),
-            "short_description": job_description.get("short_description", ""),
-            "technical_skills": job_description.get("technical_skills", "none"),
-            "responsibilities": job_description.get("responsibilities", "none"),
-            "experience": job_description.get("experience", "none"),
-            "education": job_description.get("education", "none"),
-            "soft_skills": job_description.get("soft_skills", "none"),
-            "certifications": job_description.get("certifications", "none")
+            "job_text": f"""
+                {job_description.get("education", "")}
+                {job_description.get("experience", "")}
+                {job_description.get("technical_skills", "")}
+                {job_description.get("soft_skills", "")}  
+                {job_description.get("responsibilities", "")}
+                {job_description.get("certifications", "")}
+            """,
         }
 
-        # Iterate over each candidate to compare their data with the job description
         for candidate in candidates:
             candidate_data = {
                 "name": candidate.get("name", ""),
-                "email_address": candidate.get("email_address", ""),
-                "phone_number": candidate.get("phone_number", ""),
-                "education": candidate.get("education", ""),
-                "experience": candidate.get("experience", ""),
-                "technical_skills": candidate.get("technical_skills", "").splitlines(),
-                "soft_skills": candidate.get("soft_skills", "").splitlines(),
-                "responsibilities": candidate.get("responsibilities", ""),
-                "certifications": candidate.get("certifications", "")
+                "resume_text": f"""
+                    {candidate.get("education", "")}
+                    {candidate.get("experience", "")}
+                    {candidate.get("technical_skills", "")}
+                    {candidate.get("soft_skills", "")}
+                    {candidate.get("responsibilities", "")}
+                    {candidate.get("certifications", "")}
+                """,
             }
 
             try:
-                # Calculate match score and generate comment
-                match_score = gemini.gemini_generate_match_score(candidate_data, job_data)
-                comment = gemini.gemini_generate_comment(candidate_data, job_data)
+                # Use enhanced match score with BERT embeddings
+                resume_text = candidate_data["resume_text"]
+                job_text = job_data["job_text"]
+                match_score = gemini.enhanced_match_score(resume_text, job_text)
                 
-                # Update candidate's match score and comment in the database
-                database.db.candidates.update_one({"_id": candidate["_id"]}, {"$set": {"match_score": match_score, "comment": comment}})
-            
+                # Update the database
+                database.db.candidates.update_one(
+                    {"_id": candidate["_id"]}, 
+                    {"$set": {
+                        "match_score": match_score, 
+                        "comment": gemini.gemini_generate_comment(resume_text, job_text)
+                    }}
+                )
             except Exception as e:
                 st.warning(f"Error calculating match score for {candidate.get('name', 'Unknown')}: {e}")
-
     except Exception as e:
         st.error(f"Error retrieving candidates for matching: {e}")
 

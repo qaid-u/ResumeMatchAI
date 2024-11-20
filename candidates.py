@@ -1,4 +1,4 @@
-from io import BytesIO
+import base64
 import streamlit as st
 from datetime import datetime
 import pandas as pd
@@ -65,12 +65,6 @@ def display_candidates():
             render_candidate_details(candidate_details)
         else:
             st.warning("No candidate details found for the selected candidate ID.")
-
-import streamlit as st
-import base64
-
-import streamlit as st
-import base64
 
 def render_candidate_details(candidate_details):
     """Render detailed view for selected candidate."""

@@ -1,7 +1,13 @@
 import os
 import google.generativeai as genai
 from functools import lru_cache
+from regex import F
+from sentence_transformers import SentenceTransformer
+import torch
+import torch.nn.functional as F
 
+# Initialize a BERT-based model for embeddings
+model = SentenceTransformer('all-MiniLM-L6-v2')
 cache = {}
 
 @lru_cache(maxsize=None)
@@ -134,27 +140,6 @@ def format_gemini_certifications(text):
     """
     return get_gemini_response(prompt)
 
-# Match Score and Comment Generation Functions
-def gemini_generate_match_score(resume_text, job_text):
-    # Create a unique key based on resume and job text
-    prompt_key = f"match_score:{resume_text}:{job_text}"
-    
-    # Check if the response is already cached
-    if prompt_key in cache:
-        return cache[prompt_key]
-    
-    # Create the prompt
-    prompt = f"""
-    Resume: {resume_text}
-    Job Description: {job_text}
-    Please generate a match score between 0 and 100 based on the similarity between the resume and the job description. Only number. The score is based on the order for most important aspects: technical skills, responsibilities, experience, education, soft skills, and least is certifications. Output the score only.
-    """
-    
-    # Generate response and store in cache
-    response = get_gemini_response(prompt)
-    cache[prompt_key] = response
-    return response
-
 def gemini_generate_comment(resume_text, job_text):
     # Create a unique key based on resume and job text
     prompt_key = f"comment:{resume_text}:{job_text}"
@@ -174,3 +159,45 @@ def gemini_generate_comment(resume_text, job_text):
     response = get_gemini_response(prompt)
     cache[prompt_key] = response
     return response
+
+# Function to generate BERT embeddings
+def get_bert_embeddings(text):
+    try:
+        return model.encode([text])[0]
+    except Exception as e:
+        print(f"Error generating BERT embeddings: {e}")
+        return None
+
+# Enhanced match score function using cosine similarity
+def enhanced_match_score(resume_text, job_text):
+    try:
+        # Validate inputs
+        if not resume_text or not job_text:
+            print("Empty input detected.")
+            return 0.0
+
+        # Generate embeddings
+        resume_embedding = get_bert_embeddings(resume_text)
+        job_embedding = get_bert_embeddings(job_text)
+
+        if resume_embedding is None or job_embedding is None:
+            print("Failed to generate embeddings.")
+            return 0.0
+
+        # Calculate similarity
+        similarity_score = calculate_cosine_similarity(resume_embedding, job_embedding)
+        print(f"Cosine Similarity: {similarity_score}")
+
+        # Scale similarity score
+        match_score = round(similarity_score * 100, 2)
+        return match_score
+
+    except Exception as e:
+        print(f"Error in enhanced match score calculation: {e}")
+        return 0.0
+
+def calculate_cosine_similarity(vec1, vec2):
+    vec1 = torch.tensor(vec1, dtype=torch.float32)
+    vec2 = torch.tensor(vec2, dtype=torch.float32)
+    similarity = F.cosine_similarity(vec1.unsqueeze(0), vec2.unsqueeze(0))
+    return similarity.item()
