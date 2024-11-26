@@ -205,7 +205,7 @@ def handle_job_submission(uploaded_job, job_description_text):
         "description": gemini.format_gemini_description(job_description),
         "short_description": gemini.format_gemini_short_description(job_description),
         "education": gemini.format_gemini_education_requirements(job_description),  
-        "experience": gemini.format_gemini_experience(job_description),  
+        "experience": gemini.format_gemini_experience_requirements(job_description),  
         "responsibilities": gemini.format_gemini_responsibilities(job_description),  
         "technical_skills": gemini.format_gemini_technical_skills(job_description),  
         "soft_skills": gemini.format_gemini_soft_skills(job_description),  

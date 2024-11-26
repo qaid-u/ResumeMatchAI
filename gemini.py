@@ -51,28 +51,28 @@ def format_gemini_description(text):
 def format_gemini_name(text):
     prompt = f"""
     Resume: {text}
-    Please extract the full name or name of the person listed in the resume. Ensure the name is formatted correctly with the first and last names. If there is no full name listed, use the best available name. Output the name only.
+    Please extract the full name or name of the person listed in the resume. Ensure the name is formatted correctly with the first and last names. If there is no full name listed, use the best available name. Output the name only.If there is no name, simply return ''.
     """
     return get_gemini_response(prompt)
 
 def format_gemini_job_title(text):
     prompt = f"""
     Text: {text}
-    Please extract the job title in the text. Ensure the job title is formatted correctly. Output the job title only.
+    Please extract the job title in the text. Ensure the job title is formatted correctly. Output the job title only.If there is no job title, simply return ''.
     """
     return get_gemini_response(prompt)
 
 def format_gemini_email_address(text):
     prompt = f"""
     Resume: {text}
-    Please extract the email address of the individual from the resume. Ensure the email address is in proper format and complete. Output the email address only. Ensure it is the resume owner's email address by similarity to the owner's name.
+    Please extract the email address of the individual from the resume. Ensure the email address is in proper format and complete. Output the email address only. Ensure it is the resume owner's email address by similarity to the owner's name.If there is no email address, simply return ''.
     """
     return get_gemini_response(prompt)
 
 def format_gemini_phone_number(text):
     prompt = f"""
     Resume: {text}
-    Please extract the mobile phone number of the individual from the resume. The number should be complete and properly formatted. Output the phone number only. Use +60 format for Malaysian numbers.
+    Please extract the mobile phone number of the individual from the resume. The number should be complete and properly formatted. Output the phone number only. Use +60 format for Malaysian numbers.If there is no phone number, simply return ''.
     """
     return get_gemini_response(prompt)
 
@@ -87,14 +87,14 @@ def format_gemini_summary(text):
 def format_gemini_education(text):
     prompt = f"""
     Text: {text}
-    Please extract all educational and degree levels mentioned in this text. Provide them as a list of bullet points, including any specific degrees (e.g., Bachelor's, Master's, PhD) or certifications (e.g., High School Diploma, Professional Certification). If no educational qualifications are mentioned, simply return 'none'. Output the list only.
+    Please extract all educational and degree levels mentioned in this text. Provide them as a list of bullet points, including any specific degrees (e.g., Diploma, Bachelor's, Master's, PhD) or certifications (e.g., High School Diploma, Professional Certification). If no educational qualifications are mentioned, simply return ''. Output the list only. Make sure to include the full education name (e.g Diploma in Information Technology, Degree in Accounting). No impilying, just facts.
     """
     return get_gemini_response(prompt)
 
 def format_gemini_education_requirements(text):
     prompt = f"""
     Job Description: {text}
-    Please extract all educational and degree levels mentioned in this text. Provide them as a list of bullet points, including any specific degrees (e.g., Bachelor's, Master's, PhD) or certifications (e.g., High School Diploma, Professional Certification). If no educational qualifications are mentioned, simply return 'none'. Output the list only. Output the full degree name.
+    Please extract all educational and degree levels mentioned in this text. Provide them as a list of bullet points, including any specific degrees (e.g., Diploma, Bachelor's, Master's, PhD) or certifications (e.g., High School Diploma, Professional Certification). If no educational qualifications are mentioned, simply return ''. Output the list only. Output the full degree name. Make sure to include the full education name (e.g Diploma in Information Technology, Degree in Accounting). No implying just facts.
     Note:
     - Interpret 'or' as alternative options.
     - Interpret 'and' as required inclusions.
@@ -104,39 +104,48 @@ def format_gemini_education_requirements(text):
 
 def format_gemini_experience(text):
     prompt = f"""
-    Text: {text}
-    Please extract the required work experience from this text. List the following details:
-    - The number of years of experience required (e.g., 3 years, 5+ years).
-    - The specific type(s) of work experience or skills needed (e.g., software development, project management, customer service). Output the list only.
-    If no work experience is mentioned, simply return 'none'.
+    Resume: {text}
+    Please extract the work experience from this text. List the following details:
+    - The number of years of experience required (e.g., 3 years, 5+ years) with a specific type(s) of work experience or skills needed (e.g., software development, project management, customer service).
+    If no work experience is mentioned, simply return ''. Output the list only.
     """
     return get_gemini_response(prompt)
+
+def format_gemini_experience_requirements(text):
+    prompt = f"""
+    Job Description: {text}
+    Please extract the required work experience from this text. List the following details:
+    - The number of years of experience required (e.g., 3 years, 5+ years) with a specific type(s) of work experience or skills needed (e.g., software development, project management, customer service).
+    If no work experience is mentioned, simply return ''. Output the list only.
+    """
+    return get_gemini_response(prompt)
+
 
 def format_gemini_responsibilities(text):
     prompt = f"""
     Text: {text}
-    Please extract the key responsibilities listed in this text. For each responsibility, include the main task or duty expected from the role. Present each responsibility as a bullet point, ensuring it is brief, clear, and action-oriented (e.g., "Manage team projects," "Develop software solutions"). If no responsibilities are mentioned, simply return 'none'. Output the list only.
+    Please extract the key responsibilities listed in this text. For each responsibility, include the main task or duty expected from the role. Present each responsibility as a bullet point, ensuring it is brief, clear, and action-oriented (e.g., "Manage team projects," "Develop software solutions"). If no responsibilities are mentioned, simply return ''. Output the list only.
     """
     return get_gemini_response(prompt)
 
 def format_gemini_technical_skills(text):
     prompt = f"""
     Text: {text}
-    Please extract all technical skills mentioned in this text. Include specific tools, programming languages, software, platforms, or technical expertise. List them as bullet points, without any titles or introductory text. Ensure that each skill is distinct and precise (e.g., Python, JavaScript, AWS, SQL, Git). If no technical skills are mentioned, simply return 'none'. Output the list only.
+    Please extract all technical skills mentioned in this text. Include specific tools, programming languages, software, platforms, or technical expertise. List them as bullet points, without any titles or introductory text. Ensure that each skill is distinct and precise (e.g., Python, JavaScript, AWS, SQL, Git). If no technical skills are mentioned, simply return ''. Output the list only.
     """
     return get_gemini_response(prompt)
 
 def format_gemini_soft_skills(text):
     prompt = f"""
     Text: {text}
-    Please extract all soft skills mentioned in this text. Soft skills include interpersonal abilities, communication skills, problem-solving, leadership qualities, teamwork, and other non-technical attributes. List each skill in bullet points, ensuring clarity and precision. If no soft skills are mentioned, simply return 'none'. Output the list only.
+    Please extract all soft skills mentioned in this text. Soft skills include interpersonal abilities, communication skills, problem-solving, leadership qualities, teamwork, and other non-technical attributes. List each skill in bullet points, ensuring clarity and precision. If no soft skills are mentioned, simply return ''. Output the list only.
     """
     return get_gemini_response(prompt)
 
 def format_gemini_certifications(text):
     prompt = f"""
     Text: {text}
-    Please extract all certifications mentioned in this text. This includes professional certifications, licenses, and any formal qualifications that are recognized in a specific field or industry (e.g., PMP, AWS Certified Solutions Architect, Microsoft Certified). List each certification in bullet points, ensuring that each one is distinct and accurate. If no certifications are mentioned, simply return 'none'. Output the list only.
+    Please extract all certifications mentioned in this text. This includes professional certifications, licenses, and any formal qualifications that are recognized in a specific field or industry (e.g., PMP, AWS Certified Solutions Architect, Microsoft Certified). List each certification in bullet points, ensuring that each one is distinct and accurate. If no certifications are mentioned, simply return ''. Output the list only.
     """
     return get_gemini_response(prompt)
 
