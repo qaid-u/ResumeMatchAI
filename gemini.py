@@ -1,18 +1,27 @@
 import os
-import google.generativeai as genai
 from functools import lru_cache
-from regex import F
-from sentence_transformers import SentenceTransformer
-import torch
-import torch.nn.functional as F
 
-# Initialize a BERT-based model for embeddings
-model = SentenceTransformer('all-MiniLM-L6-v2')
+import database
+import demo_data
+
+_embedder = None
 cache = {}
+
+
+def _get_embedder():
+    """Load the sentence-embedding model on first use (heavy, so not loaded in demo mode)."""
+    global _embedder
+    if _embedder is None:
+        from sentence_transformers import SentenceTransformer
+        _embedder = SentenceTransformer('all-MiniLM-L6-v2')
+    return _embedder
 
 @lru_cache(maxsize=None)
 def get_gemini_response(input_text, model_name="models/gemini-1.5-flash-001"):
+    if database.DEMO_MODE:
+        return None  # no AI calls in demo mode
     try:
+        import google.generativeai as genai
         api_key = os.getenv("GOOGLE_API_KEY")
         genai.configure(api_key=api_key)
         model = genai.GenerativeModel(model_name)
@@ -150,6 +159,8 @@ def format_gemini_certifications(text):
     return get_gemini_response(prompt)
 
 def gemini_generate_comment(resume_text, job_text):
+    if database.DEMO_MODE:
+        return demo_data.match_comment(resume_text, job_text)
     # Create a unique key based on resume and job text
     prompt_key = f"comment:{resume_text}:{job_text}"
     
@@ -172,13 +183,15 @@ def gemini_generate_comment(resume_text, job_text):
 # Function to generate BERT embeddings
 def get_bert_embeddings(text):
     try:
-        return model.encode([text])[0]
+        return _get_embedder().encode([text])[0]
     except Exception as e:
         print(f"Error generating BERT embeddings: {e}")
         return None
 
 # Enhanced match score function using cosine similarity
 def enhanced_match_score(resume_text, job_text):
+    if database.DEMO_MODE:
+        return demo_data.match_score(resume_text, job_text)
     try:
         # Validate inputs
         if not resume_text or not job_text:
@@ -206,6 +219,8 @@ def enhanced_match_score(resume_text, job_text):
         return 0.0
 
 def calculate_cosine_similarity(vec1, vec2):
+    import torch
+    import torch.nn.functional as F
     vec1 = torch.tensor(vec1, dtype=torch.float32)
     vec2 = torch.tensor(vec2, dtype=torch.float32)
     similarity = F.cosine_similarity(vec1.unsqueeze(0), vec2.unsqueeze(0))

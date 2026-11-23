@@ -1,9 +1,7 @@
 import time
 import os
-from turtle import st
-from pymongo import MongoClient
+import streamlit as st
 from dotenv import load_dotenv
-from gridfs import GridFS
 
 from loadfile import refresh_page
 
@@ -13,10 +11,30 @@ load_dotenv()
 # Retrieve MongoDB URI from environment variables
 MONGODB_URI = os.getenv("MONGODB_URI")
 
-# Configure MongoDB connection
-client = MongoClient(MONGODB_URI)
-db = client['resume_match_ai']
-fs = GridFS(db)
+# Demo mode runs entirely in memory with sample data (no MongoDB or Gemini key needed).
+# It is on when DEMO_MODE=1, or when no MONGODB_URI is configured.
+DEMO_MODE = os.getenv("DEMO_MODE") == "1" or not MONGODB_URI
+
+
+def _seed_demo(demo_db):
+    import demo_data
+    for job in demo_data.JOBS:
+        demo_db.jobs.insert_one(dict(job))
+    for cand in demo_data.CANDIDATES:
+        demo_db.candidates.insert_one({**cand, "uploaded_date": "10-11-2026"})
+
+
+if DEMO_MODE:
+    import mongomock
+    client = mongomock.MongoClient()
+    db = client['resume_match_ai']
+    _seed_demo(db)
+else:
+    from pymongo import MongoClient
+    from gridfs import GridFS
+    client = MongoClient(MONGODB_URI)
+    db = client['resume_match_ai']
+    fs = GridFS(db)
 
 def ensure_collections():
     """Ensure that required collections exist."""

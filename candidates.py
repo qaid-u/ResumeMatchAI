@@ -9,10 +9,12 @@ import database
 from loadfile import refresh_page
 
 def display_candidates():
-    st.markdown("### Upload Candidate Resumes")
-    
-    # Enable multiple file uploads
-    uploaded_resumes = st.file_uploader('Upload Candidate Resumes:', type=['pdf', 'docx'], accept_multiple_files=True)
+    uploaded_resumes = None
+    if database.DEMO_MODE:
+        st.info("Demo mode: resume upload is disabled. It needs a Gemini API key and a MongoDB database.")
+    else:
+        st.markdown("### Upload Candidate Resumes")
+        uploaded_resumes = st.file_uploader('Upload Candidate Resumes:', type=['pdf', 'docx'], accept_multiple_files=True)
 
     if uploaded_resumes:
         # Handle file submission

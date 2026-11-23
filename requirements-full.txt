@@ -1,0 +1,7 @@
+-r requirements.txt
+google-generativeai
+sentence-transformers
+torch
+spacy
+pytesseract
+pdf2image

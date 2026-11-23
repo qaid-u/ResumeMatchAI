@@ -1,25 +1,20 @@
 import os
 import re
-from gridfs import GridFS
-import pytesseract
-from pdf2image import convert_from_path
 import streamlit as st
 from docx import Document
-import spacy
-from pymongo import MongoClient
 from PyPDF2 import PdfReader
 from streamlit_js_eval import streamlit_js_eval
 
-# Load spaCy's English model for NLP tasks
-nlp = spacy.load("en_core_web_sm")
+_nlp = None
 
-# Retrieve MongoDB URI from environment variables
-MONGODB_URI = os.getenv("MONGODB_URI")
 
-# Configure MongoDB connection
-client = MongoClient(MONGODB_URI)
-db = client['resume_match_ai']
-fs = GridFS(db)
+def get_nlp():
+    """Load spaCy's English model on first use (it is heavy and not needed in demo mode)."""
+    global _nlp
+    if _nlp is None:
+        import spacy
+        _nlp = spacy.load("en_core_web_sm")
+    return _nlp
 
 # Refresh the page function
 def refresh_page():
@@ -32,6 +27,8 @@ def refresh_page():
 def ocr_pdf(file, retries=3):
     """Perform OCR on a PDF file to extract text with retries."""
     try:
+        import pytesseract
+        from pdf2image import convert_from_path
         images = convert_from_path(file, 300)
         text = ""
         for image in images:
@@ -107,7 +104,7 @@ def clean_text(text):
 # Extract entities with improved skills detection
 def extract_entities(text):
     """Extract named entities using spaCy and regex for custom entities."""
-    doc = nlp(text)
+    doc = get_nlp()(text)
     entities = {
         "names": [],
         "skills": [],
