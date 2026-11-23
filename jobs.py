@@ -145,6 +145,9 @@ def display_job_details():
         st.write("")
 
 def upload_new_job():
+    if database.DEMO_MODE:
+        st.info("Demo mode: uploading job descriptions is disabled. It needs a Gemini API key and a MongoDB database.")
+        return
     st.markdown("### Upload or Write Job Description")
 
     # Initialize session state variables for file and textarea usage

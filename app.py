@@ -13,6 +13,8 @@ except Exception as e:
 
 # Sidebar layout for section selection
 st.sidebar.header('ResumeMatchAI')
+if database.DEMO_MODE:
+    st.sidebar.info('Demo mode: sample data, no AI calls. Set MONGODB_URI and GOOGLE_API_KEY to run the real app.')
 
 # Ensure collections exist
 try:
